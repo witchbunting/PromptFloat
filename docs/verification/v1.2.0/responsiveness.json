@@ -1,0 +1,8 @@
+{
+  "providerTimeoutMs": 913.108,
+  "ballClickMenuMs": 49.4555,
+  "uiHeartbeatTicks": 27,
+  "workerThread": 18,
+  "apartment": "MTA",
+  "realMouseClick": true
+}

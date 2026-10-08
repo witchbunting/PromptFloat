@@ -1,0 +1,662 @@
+[
+  {
+    "name": "six desktop views render",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "teaching startup returns promptly with usable ball",
+    "passed": true,
+    "detail": "10 ms"
+  },
+  {
+    "name": "first teaching is nonmodal and state is persisted before display",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "teaching page 1 renders and navigates",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "teaching page 2 renders and navigates",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "teaching page 3 renders and navigates",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "teaching page 4 renders and navigates",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "first teaching offers ten categories and four defaults",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "teaching retains category choices across page navigation",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "finishing teaching persists one-time completion",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "subsequent startup does not show teaching again",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "manual teaching replay leaves template library unchanged",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "closing first teaching also prevents repeat",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "teaching state failure does not block normal app startup",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 1",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "UIA captures external editable control",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "selection extraction without clipboard fallback",
+    "passed": true,
+    "detail": "旧"
+  },
+  {
+    "name": "input dispatched after panel focus",
+    "passed": true,
+    "detail": "已执行填入，请确认目标内容。"
+  },
+  {
+    "name": "selection replacement preserves prefix suffix unicode and multiline",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 2",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "caret insertion preserves existing text",
+    "passed": true,
+    "detail": "已执行填入，请确认目标内容。"
+  },
+  {
+    "name": "fixture target identity 3",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "password control blocks automatic paste",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 4",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "per-app copy-only blocks automatic paste",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 5",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "rich text control paste",
+    "passed": true,
+    "detail": "已执行填入，请确认目标内容。"
+  },
+  {
+    "name": "switching application closes menu and releases navigation hook",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "external window switch invalidates captured target",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "stale target cannot dispatch input",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 101",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "selection snapshot captures original text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "category menu preserves external foreground",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "menu keyboard navigation and Escape preserve selection",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "submenu uses short remark",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "blank remark falls back to title",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "open menu remains frozen after statistics change",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "menu click replaces selection preserving surroundings",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "duplicate menu click dispatches once",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 102",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "automatic selection action popup",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "automatic actions do not activate app",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "polish bubbles preserve source focus",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 103",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "source edit invalidates pending polish selection",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "stale polish result cannot overwrite edited source",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 104",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "bubble adoption replaces original selection only",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "AI adoption does not count template usage",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 105",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "empty selection switches to persistent insert bubble",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "caret insert bubble preserves editor focus",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "insert bubble stays visible without polling or recreation",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "typing keeps insert bubble visible and preserves input focus",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 110",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "actual mouse click on insert bubble dispatches",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "insert bubble mouse click retains editor target and caret",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "persistent bubble inserts at caret preserving existing text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "insert bubble returns after template insertion",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 111",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "focus on non-input control hides caret bubble",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 112",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "password field does not display caret insert bubble",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 113",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "readonly caret does not display insert bubble",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 106",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "readonly selection readable but copy-only",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "readonly polish cannot replace source",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 107",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "fixture target identity 108",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "same-window different-control invalidates replacement",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 201",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "polish interaction has original selected text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "mock polish request stays pending while progress bubble is shown",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "actual mouse drags ball during polish request",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "drag preserves progress popup and the original API request",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "progress popup follows ball movement",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "dragging progress preserves source focus and selected text",
+    "passed": true,
+    "detail": "foreground=True; foregroundPid=13968; ownPid=13412; sourcePid=13968; validated=True; validFlag=True; target=True; monitorValid=True; selectedTextEqual=True"
+  },
+  {
+    "name": "unchanged original gives three Replace buttons",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "actual mouse drags ball with three polish candidates",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "drag keeps candidate bubbles and does not resend API request",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "candidate popups follow ball movement",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "drag leaves unchanged selection replaceable",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "actual mouse click on Replace button dispatches",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "Replace button changes selected text once and preserves surrounding text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "AI Replace button does not change template counters",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 202",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "fixture target identity 203",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "editing original switches all candidate actions to Copy",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "actual mouse click on stale result Copy dispatches",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "stale candidate copies without overwriting edited text",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 204",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "fixture target identity 205",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "changing selection alone switches candidate actions to Copy",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 206",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "ball can move while cancellation test request is pending",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "cancel after dragging stops the same request and closes progress",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "cancel after dragging leaves source text unchanged",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 207",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "failed polish shows explicit retry without automatic repeat",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "retry reads all three latest saved style instructions",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "retry renders current-config results while original selection remains valid",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "current-user DPAPI round trip and ciphertext",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "encrypted keys excluded from full backup",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "variable popover cancellation returns no result",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "agent editor saves three edited style fields",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "agent Save applies all three instructions before outer settings save",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "agent-only save does not commit unrelated outer settings drafts",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "outer settings Cancel preserves explicitly saved agent changes on disk",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "outer settings saves after cancelling agent edits",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "cancelled agent edits and subsequent outer save preserve last committed instructions",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "credential save failure rolls back agent configuration",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "selection save editor with category creation renders",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 109",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "all provider work uses one non-UI MTA thread",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "UI dispatcher remains responsive while provider is blocked",
+    "passed": true,
+    "detail": "3 ticks"
+  },
+  {
+    "name": "blocked provider cannot queue more work or threads",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "blocked provider has bounded 900ms caller timeout",
+    "passed": true,
+    "detail": "913.1 ms"
+  },
+  {
+    "name": "provider worker recovers when blocked request returns",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "actual ball mouse click dispatches during blocked provider",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "ball click opens category menu without waiting for blocked provider",
+    "passed": true,
+    "detail": "49.5 ms"
+  },
+  {
+    "name": "Escape closes menu while provider stays blocked",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "blocked capture never reuses an old insertion target",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "exit does not wait for a blocked UIA provider",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "fixture target identity 6",
+    "passed": true,
+    "detail": "PromptFloat"
+  },
+  {
+    "name": "closed target blocks automatic paste",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "clipboard Unicode persisted",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "clipboard cloud exclusion marker",
+    "passed": true,
+    "detail": ""
+  },
+  {
+    "name": "5000-template category menu under 200ms",
+    "passed": true,
+    "detail": "52.5 ms"
+  },
+  {
+    "name": "5000-template quick search loads all results",
+    "passed": true,
+    "detail": "123.5 ms"
+  },
+  {
+    "name": "5000-template panel under 200ms on this host",
+    "passed": true,
+    "detail": "64.1 ms"
+  },
+  {
+    "name": "5000-template search including debounce and layout under 150ms on this host",
+    "passed": true,
+    "detail": "128.5 ms"
+  }
+]

@@ -1,0 +1,11 @@
+{
+  "coldStartMs": 417.1702,
+  "cpuPercent": 0.003905242330321507,
+  "selectionProbes": 0,
+  "autoSelectionActions": true,
+  "workingSetMB": 120.9140625,
+  "sampleSeconds": 60.0243124,
+  "processors": 20,
+  "templates": 5000,
+  "os": "Microsoft Windows NT 10.0.26100.0"
+}

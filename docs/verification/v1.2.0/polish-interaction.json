@@ -1,0 +1,11 @@
+{
+  "mockApiRequests": 1,
+  "realMouseDrags": true,
+  "progressAndResultsKeepSamePopup": true,
+  "unchangedOriginalReplace": true,
+  "editedOriginalCopyOnly": true,
+  "changedSelectionCopyOnly": true,
+  "duplicateReplaceProtected": true,
+  "cancelAfterDrag": true,
+  "retryUsesLatestSavedStyles": true
+}

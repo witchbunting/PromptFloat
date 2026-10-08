@@ -1,0 +1,22 @@
+name: Bug 反馈
+description: 提供版本和可复现操作
+body:
+  - type: input
+    id: version
+    attributes:
+      label: PromptFloat 版本
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Windows 版本与目标应用版本
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: 复现步骤、预期与实际结果
+      description: 使用合成文字，不要附密钥或个人模板正文。
+    validations:
+      required: true

@@ -1,0 +1,77 @@
+using PromptFloat.Core;
+using System.Text.Json;
+using System.IO.Compression;
+using System.Diagnostics;
+
+var tests=new List<string>();
+void Assert(bool ok,string name){if(!ok)throw new Exception("FAILED: "+name);tests.Add(name);Console.WriteLine("PASS: "+name);}
+void Throws(Action action,string name){try{action();}catch{Assert(true,name);return;}throw new Exception("FAILED: "+name);}
+var root=Path.Combine(Path.GetTempPath(),"PromptFloat-tests-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);
+var store=new Store(root);
+Assert(store.Read().Categories.Single().Id==Store.Uncategorized,"empty library retains uncategorized");
+var catalog=Catalog.Create();Assert(catalog.Categories.Count==10&&catalog.Prompts.Count==30&&catalog.Prompts.All(p=>!string.IsNullOrWhiteSpace(p.Note)&&p.Tags.Count>0),"30 complete builtin templates");
+store.AddBuiltIns(catalog.Categories.Select(c=>c.SourceId!));var first=store.Read().Prompts[0];first.Body="用户自定义";store.SavePrompt(first);store.AddBuiltIns(catalog.Categories.Select(c=>c.SourceId!));
+Assert(store.Read().Prompts.Count==30&&store.Read().Prompts.Single(p=>p.Id==first.Id).Body=="用户自定义","builtin seeding idempotent and preserves edits");
+var fields=TemplateEngine.Parse("{{主题}} {{主题}} \\{{字面}} {{材料}}");Assert(fields.Select(v=>v.Name).SequenceEqual(new[]{"主题","材料"}),"variables unique in appearance order; escape ignored");
+var text=TemplateEngine.Render("{{主题}}/{{主题}}/\\{{字面}}/{{材料}}",new Dictionary<string,string>{{"主题","中文✨"},{"材料","{{不再解析}}\n代码"}},fields);
+Assert(text=="中文✨/中文✨/{{字面}}/{{不再解析}}\n代码","unicode multiline escaped and one-pass rendering");Throws(()=>TemplateEngine.Render("{{主题}}",new Dictionary<string,string>(),fields.Take(1)),"required fields reject empty values");
+Assert(TemplateEngine.Render("{{可选}}",new Dictionary<string,string>{{"可选",""}},[new Variable {Name="可选",Required=false}])=="","optional variable supports empty");
+var operation=Guid.NewGuid().ToString();Assert(store.RecordUse(first.Id,operation,false)&&!store.RecordUse(first.Id,operation,true),"operation dedup across copy and insert");
+Assert(store.Read().Prompts.Single(p=>p.Id==first.Id).Uses==1,"stats counted once");store.RecordUse(first.Id,"copy",true);
+Assert(TemplateEngine.Sorted(store.Read().Prompts).First().Id==first.Id,"frequency sorting");
+var a=new Prompt {Id="a",Title="标题命中",Body="x"};var b=new Prompt {Id="b",Title="其他",Body="命中",CopyCount=99};Assert(TemplateEngine.Search(new[]{b,a},"命中").First().Id=="a","search title relevance before usage");
+var backup=store.Backup();var before=store.Export(statistics:true);
+Throws(()=>store.Batch([first.Id],p=>p.CategoryId="missing"),"invalid batch rejected");Assert(store.Export(statistics:true)==before,"invalid batch leaves database unchanged");
+Throws(()=>store.Change(l=>{l.Prompts[0].Title="changed";throw new Exception();}),"batch exception rollback");Assert(store.Export(statistics:true)==before,"no partial batch writes");
+var export=store.Export();var exchange=JsonSerializer.Deserialize<Exchange>(export,Store.Json)!;Assert(exchange.Prompts.All(p=>p.Uses==0&&p.LastUsed==null),"export omits stats by default");
+var other=new Store(Path.Combine(root,"other"));other.Import(other.PreviewImport(export),ConflictPolicy.Skip);Assert(other.Read().Prompts.Count==30&&other.Read().Prompts.All(p=>p.Uses==0),"JSON import preserves library and resets stats");
+var preview=other.PreviewImport(export);Assert(preview.IdConflicts==30&&preview.DuplicateBodies==30,"import preview identifies conflicts");other.Import(preview,ConflictPolicy.Skip);Assert(other.Read().Prompts.Count==30,"skip conflict policy");
+other.Import(preview,ConflictPolicy.NewCopy);Assert(other.Read().Prompts.Count==60,"new-copy conflict remaps categories and templates");
+other.Import(other.PreviewImport(before),ConflictPolicy.Overwrite,true);Assert(other.Read().Prompts.Single(p=>p.Id==first.Id).Uses==2,"overwrite import with statistics");
+var otherBefore=other.Export(statistics:true);Throws(()=>other.PreviewImport("{bad"),"malformed JSON rejected");Throws(()=>other.PreviewImport("{\"FormatVersion\":99}"),"future JSON version rejected");
+Throws(()=>other.PreviewImport("{\"Categories\":null,\"Prompts\":[]}"),"null collections rejected");Assert(other.Export(statistics:true)==otherBefore,"failed import preview leaves data unchanged");
+var forged=new Exchange {Categories=[new Category {Id="c",Name="c"}],Prompts=[new Prompt {CategoryId="missing",Body="test"}]};Throws(()=>other.PreviewImport(JsonSerializer.Serialize(forged)),"dangling category import rejected");
+var category=store.Read().Categories.First(c=>c.Id==first.CategoryId);store.DeleteCategory(category.Id);Assert(store.Read().Prompts.Where(p=>p.SourceId?.StartsWith(category.SourceId+"/")==true).All(p=>p.CategoryId==Store.Uncategorized),"delete category moves templates to uncategorized");Throws(()=>store.DeleteCategory(Store.Uncategorized),"reserved category cannot be deleted");
+store.Restore(backup);Assert(store.Export(statistics:true)==before,"consistent SQLite backup restores templates and stats");
+store.Batch([first.Id],p=>p.Deleted=DateTimeOffset.UtcNow);Assert(!store.RecordUse(first.Id,"deleted",true),"deleted template cannot gain usage");
+store.Batch([first.Id],p=>p.Deleted=null);Assert(store.Read().Prompts.Single(p=>p.Id==first.Id).Deleted==null,"trash restore");
+store.Batch([first.Id],p=>p.Deleted=DateTimeOffset.UtcNow.AddDays(-31));store.PurgeTrash();Assert(store.Read().Prompts.All(p=>p.Id!=first.Id),"trash purges after 30 days");
+var invalidZip=Path.Combine(root,"invalid.zip");using(var z=ZipFile.Open(invalidZip,ZipArchiveMode.Create)){using var s=new StreamWriter(z.CreateEntry("settings.json").Open());s.Write("{}");}
+var saved=store.Export(statistics:true);Throws(()=>store.Restore(invalidZip),"invalid backup rejected");Assert(store.Export(statistics:true)==saved,"invalid backup retains current database");
+var settings=store.Settings;settings.Initialized=true;settings.BallX=100;store.SaveSettings(settings);var reopened=new Store(root);Assert(reopened.Settings.Initialized&&reopened.Settings.BallX==100,"settings persistence");
+settings.BallX=-1080;settings.BallY=-200;settings.BallPositionSaved=true;store.SaveSettings(settings);var negativePosition=new Store(root).Settings;
+Assert(negativePosition.BallPositionSaved&&negativePosition.BallX==-1080&&negativePosition.BallY==-200,"negative multi-monitor coordinates persist");
+var blocked=new Store(Path.Combine(root,"blocked-backup"));File.WriteAllText(blocked.BackupsPath,"blocked");
+Throws(()=>blocked.SavePrompt(new Prompt {Body="must not commit"}),"backup failure blocks mutation");Assert(blocked.Read().Prompts.Count==0,"backup failure preserves original data");
+for(var i=0;i<9;i++)store.Backup("daily");for(var i=0;i<5;i++)store.Backup("special");
+Assert(Directory.GetFiles(store.BackupsPath,"daily-*.zip").Length==7&&Directory.GetFiles(store.BackupsPath,"special-*.zip").Length==3,"backup retention keeps seven daily and three special");
+Throws(()=>Store.ValidateSettings(new Settings {BallSize=double.NaN}),"non-finite settings rejected");
+var futureRoot=Path.Combine(root,"future");Directory.CreateDirectory(futureRoot);var futureDb=Path.Combine(futureRoot,"library.db");using(var db=new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={futureDb};Pooling=False")){db.Open();using var cmd=db.CreateCommand();cmd.CommandText="PRAGMA user_version=99";cmd.ExecuteNonQuery();}
+var futureBefore=File.ReadAllBytes(futureDb);Throws(()=>new Store(futureRoot),"future database version rejected");Assert(File.ReadAllBytes(futureDb).SequenceEqual(futureBefore),"unsupported database remains byte-for-byte unchanged");
+var perf=new Store(Path.Combine(root,"performance"));perf.Settings.AutoBackup=false;var watch=Stopwatch.StartNew();perf.Change(l=>{for(var i=0;i<5000;i++)l.Prompts.Add(new Prompt {Title=$"模板 {i}",Body=$"正文 中文 数据 {i}",Tags=["测试"]});});var seedMs=watch.Elapsed.TotalMilliseconds;
+watch.Restart();var loaded=perf.Read();var loadMs=watch.Elapsed.TotalMilliseconds;watch.Restart();var results=TemplateEngine.Search(loaded.Prompts,"数据 42").ToList();var searchMs=watch.Elapsed.TotalMilliseconds;
+Assert(results.Count>0&&searchMs<150,"5000-template search under 150ms on this host");
+var teachingRoot=Path.Combine(root,"teaching");
+var teaching=new Store(teachingRoot);
+Assert(FirstRunTeaching.ShouldShow(teaching.Settings),"fresh data directory requests teaching");
+Assert(FirstRunTeaching.TryReserve(teaching),"teaching reserved before display");
+var interrupted=new Store(teachingRoot);
+Assert(interrupted.Settings.TutorialShown&&!interrupted.Settings.Initialized&&!FirstRunTeaching.ShouldShow(interrupted.Settings),"interrupted first display does not repeat automatically");
+Assert(!FirstRunTeaching.TryReserve(interrupted),"subsequent startup cannot reserve teaching again");
+var oneCategory=Catalog.Create().Categories.OrderBy(c=>c.Order).First().SourceId!;
+FirstRunTeaching.Complete(interrupted,[oneCategory]);
+Assert(new Store(teachingRoot).Settings.Initialized&&interrupted.Read().Prompts.Count==3,"teaching completes selected initial category and persists");
+FirstRunTeaching.Complete(interrupted,[oneCategory]);
+Assert(interrupted.Read().Prompts.Count==3,"teaching category initialization remains idempotent");
+var legacy=JsonSerializer.Deserialize<Settings>("{\"Initialized\":true}",Store.Json)!;
+Assert(!FirstRunTeaching.ShouldShow(legacy),"upgraded initialized legacy settings skip first-run teaching");
+var skipped=new Store(Path.Combine(root,"teaching-skip"));FirstRunTeaching.TryReserve(skipped);FirstRunTeaching.Complete(skipped,[]);
+Assert(new Store(skipped.Root).Settings.Initialized&&skipped.Read().Prompts.Count==0,"skip teaching starts with empty library and never repeats");
+var failedTeaching=new Store(Path.Combine(root,"teaching-failure"));Directory.CreateDirectory(failedTeaching.SettingsPath+".tmp");
+Throws(()=>FirstRunTeaching.TryReserve(failedTeaching),"teaching state write failure is reported");
+Assert(!failedTeaching.Settings.TutorialShown,"failed state write does not change in-memory teaching flag");
+Directory.Delete(failedTeaching.SettingsPath+".tmp");
+await ApiVerification.Run(Assert);
+Directory.CreateDirectory("artifacts");File.WriteAllText("artifacts/core-tests.json",JsonSerializer.Serialize(new {passed=tests.Count,tests,performance=new {templates=5000,seedMs,loadMs,searchMs}},Store.Json));Console.WriteLine($"{tests.Count} checks passed; load {loadMs:F1}ms, search {searchMs:F1}ms");
+// Only remove this exact, uniquely named temporary test directory.
+Directory.Delete(root,true);

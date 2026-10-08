@@ -1,0 +1,1 @@
+<Project><PropertyGroup><Version>1.2.0</Version><RestorePackagesWithLockFile>true</RestorePackagesWithLockFile><Deterministic>true</Deterministic><NuGetAudit>true</NuGetAudit><NuGetAuditMode>all</NuGetAuditMode></PropertyGroup></Project>

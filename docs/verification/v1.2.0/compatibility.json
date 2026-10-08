@@ -1,0 +1,50 @@
+[
+  {
+    "app": "Edge",
+    "state": "passed",
+    "detail": "专用测试输入：焦点恢复、中文/Emoji/多行选区替换；选区读取：支持",
+    "version": "154.0.4258.37"
+  },
+  {
+    "app": "Chrome",
+    "state": "unavailable",
+    "detail": "本机未发现程序，待手动兼容验证",
+    "version": ""
+  },
+  {
+    "app": "记事本",
+    "state": "passed",
+    "detail": "专用测试输入：焦点恢复、中文/Emoji/多行选区替换；选区读取：支持",
+    "version": "10.0.26100.8875 (WinBuild.160101.0800)"
+  },
+  {
+    "app": "VS Code",
+    "state": "passed",
+    "detail": "专用测试输入：焦点恢复、中文/Emoji/多行选区替换；选区读取：依控件支持，可手动复制后保存",
+    "version": "1.139.1"
+  },
+  {
+    "app": "Microsoft Word",
+    "state": "pending-manual",
+    "detail": "本机 Word COM 由 WPS 提供；此前 WPS 专用空白文档验证通过，不能替代 Microsoft Word 验收",
+    "version": ""
+  },
+  {
+    "app": "微信 / QQ",
+    "state": "pending-manual",
+    "detail": "保留现有聊天草稿；待专用测试会话验收",
+    "version": ""
+  },
+  {
+    "app": "实际 AI 网页 / 富文本",
+    "state": "pending-manual",
+    "detail": "网页 textarea 已覆盖；各站点富文本输入需人工验收",
+    "version": ""
+  },
+  {
+    "app": "Windows 10 / 多屏混合 DPI / 中文输入法",
+    "state": "pending-manual",
+    "detail": "需要相应系统、显示器及输入法组合验收",
+    "version": ""
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "nonmodal": true,
+  "oneTimePersisted": true,
+  "fourPages": true,
+  "categoryChoicesRetained": true,
+  "manualReplayDoesNotChangeLibrary": true,
+  "closePreventsRepeat": true,
+  "stateFailureDoesNotBlockStartup": true
+}

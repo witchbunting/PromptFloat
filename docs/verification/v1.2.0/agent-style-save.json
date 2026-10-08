@@ -1,0 +1,8 @@
+{
+  "editsAllThreeStyles": true,
+  "oneSaveAppliesImmediately": true,
+  "outerCancelPreservesCommittedAgents": true,
+  "cancelledEditsDiscarded": true,
+  "credentialFailureRollsBack": true,
+  "mockApiOnly": true
+}
