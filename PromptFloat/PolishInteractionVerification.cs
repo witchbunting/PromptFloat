@@ -55,7 +55,15 @@ internal static class PolishInteractionVerification
     {
         var point=button.PointToScreen(new Point(button.ActualWidth/2,button.ActualHeight/2));
         var window=((HwndSource)PresentationSource.FromVisual(button)).Handle;Native.GetCursorPos(out var previous);
-        try{var sent=Native.TestClick(window,(int)point.X,(int)point.Y,false);await Task.Delay(60);return sent;}
+        try
+        {
+            // Hover expands candidate content and can move its button. Let that
+            // layout settle before computing the position for the actual click.
+            if(!Native.TestMoveCursor(new Native.Point {X=(int)point.X,Y=(int)point.Y}))return false;
+            await Task.Delay(120);
+            point=button.PointToScreen(new Point(button.ActualWidth/2,button.ActualHeight/2));
+            var sent=Native.TestClick(window,(int)point.X,(int)point.Y,false);await Task.Delay(120);return sent;
+        }
         finally{Native.TestRestoreCursor(previous);}
     }
     public static async Task Run(Host host,IntPtr window,Func<int,string,int,int,string,Task> command,Func<string,Task<string>> text,Action<bool,string,string> check,string output)
@@ -80,7 +88,7 @@ internal static class PolishInteractionVerification
             var progress=host.Surfaces.ActiveVisual!;
             check(handler.Requests==1&&!operation.IsCompleted&&progress!=null,"mock polish request stays pending while progress bubble is shown","");
             var beforeBall=Native.Bounds(host.Ball);var beforePopup=PopupBounds(progress!);
-            check(await Native.TestDragAsync(new WindowInteropHelper(host.Ball).Handle,beforeBall.Left+beforeBall.Width/2,beforeBall.Top+beforeBall.Height/2,120,70),"actual mouse drags ball during polish request","");
+            check(await Native.TestDragAsync(new WindowInteropHelper(host.Ball).Handle,beforeBall.Left+beforeBall.Width/2,beforeBall.Top+beforeBall.Height/2,120,70),"actual mouse drags ball during polish request",Native.TestDragFailure);
             var afterBall=Native.Bounds(host.Ball);var afterPopup=PopupBounds(host.Surfaces.ActiveVisual!);
             check(host.Surfaces.IsOpen&&ReferenceEquals(progress,host.Surfaces.ActiveVisual)&&!operation.IsCompleted&&handler.Requests==1,"drag preserves progress popup and the original API request","");
             check(Math.Abs((afterPopup.Left-beforePopup.Left)-(afterBall.Left-beforeBall.Left))<=2&&Math.Abs((afterPopup.Top-beforePopup.Top)-(afterBall.Top-beforeBall.Top))<=2&&afterBall.Left!=beforeBall.Left,"progress popup follows ball movement","");
@@ -113,7 +121,8 @@ internal static class PolishInteractionVerification
             check(Buttons(host.Surfaces.ActiveVisual!).Count(b=>b.Content as string=="复制")==3,"editing original switches all candidate actions to Copy","");
             var copy=Buttons(host.Surfaces.ActiveVisual!).First(b=>b.Content as string=="复制");
             check(await Click(copy),"actual mouse click on stale result Copy dispatches","");
-            check(Clipboard.GetText()=="仅复制版本"&&await text("text")=="新文本","stale candidate copies without overwriting edited text","");
+            var copied=Clipboard.GetText()=="仅复制版本";var intact=await text("text")=="新文本";
+            check(copied&&intact,"stale candidate copies without overwriting edited text",$"clipboardMatches={copied}; sourceIntact={intact}");
             host.Surfaces.Close();
             await command(204,"前旧后",1,1,"plain");await Task.Delay(350);var changedRange=host.Selection.Current!;
             host.Surfaces.ShowResults(changedRange,[new("一","候选一"),new("二","候选二"),new("三","候选三")]);

@@ -21,7 +21,7 @@ internal sealed class SettingsWindow : Window
         var tabs=new TabControl {Margin=new Thickness(0,12,0,12)};
         void Tab(string title,UIElement content)=>tabs.Items.Add(new TabItem {Header=title,Content=new ScrollViewer {Content=content,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,Padding=new Thickness(12)}});
         Tab("常规",Ui.Stack(auto,backup,selectionActions,Ui.Text("关闭管理或设置窗口后继续常驻。右键悬浮球或托盘选择“退出”结束程序。",13,false,"Muted"),Ui.Labeled("剪贴板行为",Ui.Text("填入后保留模板，原剪贴板会被替换。仅填入，不自动发送。"))));
-        Tab("外观",Ui.Stack(Ui.Labeled("悬浮球大小（28–88）",size),Ui.Labeled("透明度",opacity),Ui.Labeled("主题",theme),snap,half,Ui.Button("将悬浮球移回可见区域",()=>{host.Ball.Show();host.Ball.Reveal();host.Ball.Clamp(false);})));
+        Tab("外观",Ui.Stack(new BallAppearanceEditor(settings,size,opacity),Ui.Labeled("主题",theme),snap,half,Ui.Button("将悬浮球移回可见区域",()=>{host.Ball.Show();host.Ball.Reveal();host.Ball.Clamp(false);})));
         Tab("快捷键",Ui.Stack(Ui.Labeled("展开面板",panel),Ui.Labeled("保存选中文字",save),Ui.Labeled("显示 / 隐藏悬浮球",hide),Ui.Text("示例：Ctrl+Alt+P。冲突时鼠标入口仍可用，保存后会提示注册结果。",12,false,"Muted")));
         var agentStatus=Ui.Text("智能体页面独立保存，保存后立即生效，无需再次保存外层设置。",12,false,"Muted");
         Tab("智能体",Ui.Stack(Ui.Text("支持多个 OpenAI 兼容智能体及三种可配置润色风格。"),Ui.Button("配置智能体与测试连接",()=>new AgentWindow(settings,host.Credentials,keyChanges,this,(agents,defaultId,keys)=>{

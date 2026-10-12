@@ -20,7 +20,7 @@ internal sealed class BallWindow : Window
         Closing+=(_,e)=>{if(!host.Exiting){e.Cancel=true;Hide();}};
         Microsoft.Win32.SystemEvents.DisplaySettingsChanged+=DisplaysChanged;
     }
-    public void ApplySettings(){Width=Height=host.Store.Settings.BallSize;Opacity=host.Store.Settings.Opacity;if(Content is Border circle)circle.ToolTip="PromptFloat · "+host.Store.Settings.PanelHotkey;}
+    public void ApplySettings(){Width=Height=host.Store.Settings.BallSize;Opacity=host.Store.Settings.Opacity;if(Content is Border circle){BallAppearance.Apply(circle,host.Store.Settings);circle.ToolTip="PromptFloat · "+host.Store.Settings.PanelHotkey;}}
     private void DisplaysChanged(object? sender,EventArgs e)=>Dispatcher.BeginInvoke(()=>{Reveal();Clamp(false);SavePosition();});
     private void RestorePosition()
     {

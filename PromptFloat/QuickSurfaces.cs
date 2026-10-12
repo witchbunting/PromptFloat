@@ -7,6 +7,7 @@ internal sealed class QuickSurfaces : IDisposable
     private readonly Host host;
     private ContextMenu? menu;
     private MenuKeys? menuKeys;
+    private MenuMouse? menuMouse;
     private MenuItem? keyboardGroup;
     private int keyboardIndex=-1;
     private Popup? popup;
@@ -61,6 +62,7 @@ internal sealed class QuickSurfaces : IDisposable
     internal static string Label(Prompt p)=>string.IsNullOrWhiteSpace(p.Note)?p.Title:p.Note.Trim().Replace("\r"," ").Replace("\n"," ");
     public void Close()
     {
+        menuMouse?.Dispose();menuMouse=null;
         menuKeys?.Dispose();menuKeys=null;keyboardGroup=null;keyboardIndex=-1;
         if(menu!=null)menu.IsOpen=false;
         if(popup!=null){popup.IsOpen=false;popup.Child=null;popup=null;}
@@ -79,7 +81,7 @@ internal sealed class QuickSurfaces : IDisposable
         var library=host.Store.Read();
         var enabled=library.Categories.Where(c=>c.Enabled).Select(c=>c.Id).ToHashSet();
         var prompts=library.Prompts.Where(p=>p.Deleted==null&&p.Enabled&&enabled.Contains(p.CategoryId)).ToList();
-        menu=new ContextMenu {PlacementTarget=host.Ball,Placement=PlacementMode.Right,MaxHeight=WorkHeight(),MinWidth=180,FontFamily=new FontFamily("Microsoft YaHei UI"),FontSize=13};
+        menu=new ContextMenu {StaysOpen=false,PlacementTarget=host.Ball,Placement=PlacementMode.Right,MaxHeight=WorkHeight(),MinWidth=180,FontFamily=new FontFamily("Microsoft YaHei UI"),FontSize=13};
         menu.SetResourceReference(Control.BackgroundProperty,"Surface");menu.SetResourceReference(Control.ForegroundProperty,"Ink");
         void Group(string name,IEnumerable<Prompt> items)
         {
@@ -99,7 +101,36 @@ internal sealed class QuickSurfaces : IDisposable
             Group(category.Name,TemplateEngine.Sorted(prompts.Where(p=>p.CategoryId==category.Id)));
         menu.Items.Add(new Separator());
         var search=new MenuItem {Header="搜索提示词…"};search.Click+=(_,_)=>ShowSearch(selection);menu.Items.Add(search);
-        menu.IsOpen=true;menuKeys=new MenuKeys(Navigate);menu.Closed+=(_,_)=>{menuKeys?.Dispose();menuKeys=null;host.Selection.Refresh();};
+        var opened=menu;
+        opened.Closed+=(_,_)=>{
+            // Ignore close notifications while the root menu is still open.
+            if(!ReferenceEquals(menu,opened)||opened.IsOpen)return;
+            menuMouse?.Dispose();menuMouse=null;menuKeys?.Dispose();menuKeys=null;
+            host.Selection.Refresh();
+        };
+        opened.IsOpen=true;menuKeys=new MenuKeys(Navigate);
+        try {menuMouse=new MenuMouse(point=>InsideMenu(opened,point),()=>{if(ReferenceEquals(menu,opened))Close();});}
+        catch {Close();throw;}
+    }
+    private bool InsideMenu(ContextMenu opened,Native.Point point)
+    {
+        if(!ReferenceEquals(menu,opened)||!opened.IsOpen)return true;
+        // Native rectangles are physical screen coordinates, matching the hook
+        // on mixed-DPI monitors. Each WPF submenu has its own popup HWND.
+        static bool Contains(IntPtr window,Native.Point p)=>window!=IntPtr.Zero&&
+            Native.GetWindowRect(window,out var bounds)&&p.X>=bounds.Left&&p.X<bounds.Right&&p.Y>=bounds.Top&&p.Y<bounds.Bottom;
+        bool ContainsVisual(Visual visual)=>PresentationSource.FromVisual(visual) is HwndSource source&&Contains(source.Handle,point);
+        bool ContainsSubmenu(ItemsControl parent)
+        {
+            foreach(var group in parent.Items.OfType<MenuItem>().Where(i=>i.IsSubmenuOpen))
+            {
+                if(group.Template?.FindName("PART_Popup",group) is Popup submenu&&submenu.IsOpen&&submenu.Child is Visual child&&ContainsVisual(child))return true;
+                if(ContainsSubmenu(group))return true;
+            }
+            return false;
+        }
+        // Leave ball presses to its toggle/drag handlers, avoiding close-then-reopen.
+        return Contains(new WindowInteropHelper(host.Ball).Handle,point)||ContainsVisual(opened)||ContainsSubmenu(opened);
     }
     internal void UpdateMenuSelection(SelectionSnapshot? snapshot){selection=snapshot;}
     private void Navigate(int key)

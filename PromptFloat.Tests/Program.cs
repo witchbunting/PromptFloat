@@ -8,6 +8,29 @@ void Assert(bool ok,string name){if(!ok)throw new Exception("FAILED: "+name);tes
 void Throws(Action action,string name){try{action();}catch{Assert(true,name);return;}throw new Exception("FAILED: "+name);}
 var root=Path.Combine(Path.GetTempPath(),"PromptFloat-tests-"+Guid.NewGuid().ToString("N"));Directory.CreateDirectory(root);
 var store=new Store(root);
+var legacyAppearance=JsonSerializer.Deserialize<Settings>("{\"Initialized\":true}",Store.Json)!;
+Assert(legacyAppearance.BallStyle=="blue"&&legacyAppearance.BallImage==""&&legacyAppearance.BallImageShape=="circle","legacy appearance settings use default ball");
+var imageSettings=new Settings {BallStyle="custom",BallImage="iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+jTUEAAAAASUVORK5CYII=",BallImageShape="original"};
+store.SaveSettings(imageSettings);
+var imageReopened=new Store(root);
+Assert(imageReopened.Settings.BallStyle=="custom"&&imageReopened.Settings.BallImage==imageSettings.BallImage&&imageReopened.Settings.BallImageShape=="original","custom ball data and shape survive reopen");
+var appearanceBackup=store.Backup();
+store.SaveSettings(new Settings());store.Restore(appearanceBackup);
+Assert(store.Settings.BallImage==imageSettings.BallImage&&store.Settings.BallStyle=="custom","full backup restores custom ball settings");
+var largeAppearance=new Settings {BallStyle="custom",BallImage=imageSettings.BallImage,Agents=Enumerable.Range(0,16).Select(i=>new AgentProfile {
+    Name="备份测试 "+i,Model="mock-model",SystemPrompt=new string('汉',10000),Styles=Enumerable.Range(0,3).Select(j=>new PolishStyle {Name="风格 "+j,Instruction=new string('汉',10000)}).ToList()
+}).ToList()};
+store.SaveSettings(largeAppearance);var largeAppearanceBackup=store.Backup();store.SaveSettings(new Settings());store.Restore(largeAppearanceBackup);
+Assert(store.Settings.Agents.Count==16&&store.Settings.BallImage==imageSettings.BallImage,"image settings backup restores with larger agent configurations");
+store.SaveSettings(imageSettings);
+var savedAppearance=File.ReadAllText(store.SettingsPath);
+Throws(()=>store.SaveSettings(new Settings {BallStyle="custom"}),"custom style without image rejected");
+Throws(()=>store.SaveSettings(new Settings {BallStyle="unknown"}),"unknown ball style rejected");
+Throws(()=>store.SaveSettings(new Settings {BallImageShape="unknown"}),"unknown image shape rejected");
+Throws(()=>store.SaveSettings(new Settings {BallImage="not base64"}),"invalid image data rejected");
+Throws(()=>store.SaveSettings(new Settings {BallImage=new string('A',400001)}),"oversized saved image rejected");
+Assert(File.ReadAllText(store.SettingsPath)==savedAppearance,"invalid appearance save preserves previous settings");
+store.SaveSettings(new Settings());
 Assert(store.Read().Categories.Single().Id==Store.Uncategorized,"empty library retains uncategorized");
 var catalog=Catalog.Create();Assert(catalog.Categories.Count==10&&catalog.Prompts.Count==30&&catalog.Prompts.All(p=>!string.IsNullOrWhiteSpace(p.Note)&&p.Tags.Count>0),"30 complete builtin templates");
 store.AddBuiltIns(catalog.Categories.Select(c=>c.SourceId!));var first=store.Read().Prompts[0];first.Body="用户自定义";store.SavePrompt(first);store.AddBuiltIns(catalog.Categories.Select(c=>c.SourceId!));

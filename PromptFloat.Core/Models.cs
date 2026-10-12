@@ -64,6 +64,9 @@ public sealed class Settings
     public double BallY { get; set; } = -1;
     public bool BallPositionSaved { get; set; }
     public double BallSize { get; set; } = 44;
+    public string BallStyle { get; set; } = "blue";
+    public string BallImage { get; set; } = "";
+    public string BallImageShape { get; set; } = "circle";
     public double Opacity { get; set; } = .95;
     public bool Snap { get; set; } = true;
     public bool HalfHide { get; set; }

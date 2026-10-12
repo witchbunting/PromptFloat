@@ -15,6 +15,48 @@ internal static class QuickVerification
         check(Native.GetForegroundWindow()==window,"category menu preserves external foreground","");
         Native.TestKey(0x28);await Task.Delay(80);Native.TestKey(0x1B);await Task.Delay(100);
         check(host.Surfaces.ActiveMenu?.IsOpen!=true&&await host.Input.SelectedTextAsync()=="旧","menu keyboard navigation and Escape preserve selection","");
+        // Exercise the real ball click while the original editor remains foreground.
+        // Clicking elsewhere in that same window must dismiss without a foreground event.
+        host.Store.Settings.AutoSelectionActions=false;host.Selection.Apply();
+        var ballHandle=new WindowInteropHelper(host.Ball).Handle;
+        var ballBounds=Native.Bounds(host.Ball);
+        Native.GetCursorPos(out var dismissalCursor);
+        try
+        {
+            check(Native.TestClick(ballHandle,ballBounds.Left+ballBounds.Width/2,ballBounds.Top+ballBounds.Height/2,false),"actual ball click opens menu","");
+            await Task.Delay(350);
+            check(host.Surfaces.ActiveMenu?.IsOpen==true,"ball click menu is open","");
+            var fixtureBounds=default(Native.Rect);Native.GetWindowRect(window,out fixtureBounds);
+            check(Native.TestClick(window,fixtureBounds.Left+200,fixtureBounds.Top+18,false),"outside click in original window dispatches","");
+            await Task.Delay(250);
+            check(host.Surfaces.ActiveMenu?.IsOpen!=true,"outside click in same foreground window closes menu","");
+            check(Native.GetForegroundWindow()==window,"outside dismissal preserves original foreground","");
+        }
+        finally {Native.TestRestoreCursor(dismissalCursor);}
+        foreach(var (name,down,up,client) in new[]{("left in editor",2u,4u,true),("right",8u,16u,false),("middle",32u,64u,false)})
+        {
+            host.Surfaces.ShowMenu(snapshot);await Task.Delay(100);
+            var categoryMenu=host.Surfaces.ActiveMenu!;
+            var categoryItem=categoryMenu.Items.OfType<MenuItem>().Single(m=>m.Header as string=="菜单测试");
+            var categoryPoint=categoryItem.PointToScreen(new Point(20,categoryItem.ActualHeight/2));
+            var categoryWindow=((HwndSource)PresentationSource.FromVisual(categoryItem)).Handle;
+            check(Native.TestClick(categoryWindow,(int)categoryPoint.X,(int)categoryPoint.Y,false),"category click opens submenu "+name,"");
+            await Task.Delay(200);
+            check(categoryMenu.IsOpen&&categoryItem.IsSubmenuOpen,"inside category click keeps menu open "+name,"");
+            Native.GetWindowRect(window,out var bounds);
+            try
+            {
+                check(Native.TestClick(window,bounds.Left+200,bounds.Top+(client?105:18),false,down,up),"outside button dispatches "+name,"");
+                await Task.Delay(200);
+                check(!categoryMenu.IsOpen,"outside click closes root and submenu "+name,"");
+                check(!categoryItem.IsSubmenuOpen,"outside click collapses submenu "+name,"");
+                Native.TestKey(0x1B); // Close the fixture's system menu after a right click.
+                await Task.Delay(80);
+            }
+            finally {Native.TestRestoreCursor(dismissalCursor);}
+        }
+        await command(114,"前旧后",1,1,"plain");snapshot=await host.Input.SnapshotAsync();
+        host.Store.Settings.AutoSelectionActions=true;
         host.Surfaces.ShowMenu(snapshot);await Task.Delay(80);
         var menu=host.Surfaces.ActiveMenu!;
         var group=menu.Items.OfType<MenuItem>().Single(m=>m.Header as string=="菜单测试");group.IsSubmenuOpen=true;await Task.Delay(180);
@@ -24,7 +66,15 @@ internal static class QuickVerification
         Render(menu,"menu.png",output);
         host.Store.RecordUse(fixedPrompt.Id,"frozen-menu",true);
         check(ReferenceEquals(item,group.Items[0]),"open menu remains frozen after statistics change","");
-        item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent,item));item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent,item));
+        var templatePoint=item.PointToScreen(new Point(20,item.ActualHeight/2));
+        var templateWindow=((HwndSource)PresentationSource.FromVisual(item)).Handle;
+        try
+        {
+            check(Native.TestClick(templateWindow,(int)templatePoint.X,(int)templatePoint.Y,false),"actual submenu template click dispatches","");
+            await Task.Delay(80);
+            item.RaiseEvent(new RoutedEventArgs(MenuItem.ClickEvent,item));
+        }
+        finally {Native.TestRestoreCursor(dismissalCursor);}
         await Task.Delay(700);check(await text("text")=="前菜单插入✨\r\n后","menu click replaces selection preserving surroundings","");
         check(host.Store.Read().Prompts.Single(p=>p.Id==fixedPrompt.Id).InsertCount==1,"duplicate menu click dispatches once","");
         await command(102,"原文",0,2,"plain");

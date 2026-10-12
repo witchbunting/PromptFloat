@@ -208,7 +208,7 @@ public sealed class Store
             {
             var database=zip.GetEntry("library.db")??throw new InvalidDataException("备份缺少数据库。");
             var settingsEntry=zip.GetEntry("settings.json")??throw new InvalidDataException("备份缺少设置。");
-            if(database.Length>100_000_000||settingsEntry.Length>1_000_000) throw new InvalidDataException("备份大小异常。");
+            if(database.Length>100_000_000||settingsEntry.Length>6_000_000) throw new InvalidDataException("备份大小异常。");
             using var reader=new StreamReader(settingsEntry.Open());settings=JsonSerializer.Deserialize<Settings>(reader.ReadToEnd(),Json)??throw new InvalidDataException("设置无效。");ValidateSettings(settings);
             database.ExtractToFile(temp);
             }
@@ -234,6 +234,14 @@ public sealed class Store
     }
     public static void ValidateSettings(Settings s)
     {
+        if(s.BallStyle is not ("blue" or "mint" or "orange" or "graphite" or "custom")||s.BallImageShape is not ("circle" or "original")||s.BallImage==null||s.BallImage.Length>400_000)throw new InvalidDataException("悬浮球样式无效。");
+        if(s.BallStyle=="custom"&&s.BallImage.Length==0)throw new InvalidDataException("请先选择自定义图片。");
+        if(s.BallImage.Length>0)
+        {
+            byte[] image;
+            try{image=Convert.FromBase64String(s.BallImage);}catch(FormatException){throw new InvalidDataException("悬浮球图片数据无效。");}
+            if(image.Length<8||!image.AsSpan(0,8).SequenceEqual(new byte[]{137,80,78,71,13,10,26,10}))throw new InvalidDataException("悬浮球图片格式无效。");
+        }
         if(s.Agents==null||s.Agents.Count>40||s.Agents.Any(a=>a==null)||s.Agents.Select(a=>a.Id).Distinct().Count()!=s.Agents.Count)throw new InvalidDataException("智能体配置无效。");
         foreach(var a in s.Agents)PolishService.Validate(a);
         if(s.DefaultAgentId!=null&&!s.Agents.Any(a=>a.Id==s.DefaultAgentId))throw new InvalidDataException("默认智能体不存在。");

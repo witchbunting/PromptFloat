@@ -74,6 +74,8 @@ internal static class Verification
                 File.AppendAllText(Path.Combine(fixtureDir,"readback.jsonl"),JsonSerializer.Serialize(new {property,reported,observed})+"\n");return observed;
             }
             await Command(1,"前缀旧后缀",2,1);Check(host.Input.Target!=null,"UIA captures external editable control");
+            await AppearanceVerification.Run(host,Check,output,()=>Command(191,"外观测试输入",0,0));
+            await Command(192,"前缀旧后缀",2,1);
             var selection=await host.Input.SelectedTextAsync();
             var inputDiagnostics=await host.Input.AutomationAsync(()=>new {selection,app=host.Input.Target!.App,copyOnly=host.Input.Target.CopyOnly,control=host.Input.Target.Element!.Current.ControlType.ProgrammaticName,patterns=host.Input.Target.Element.GetSupportedPatterns().Select(p=>p.ProgrammaticName).ToArray(),captured=host.Input.Target.Selection.Select(r=>r.GetText(100)).ToArray()});
             File.WriteAllText(Path.Combine(output,"input-diagnostics.json"),JsonSerializer.Serialize(inputDiagnostics,Store.Json));

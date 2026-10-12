@@ -123,16 +123,22 @@ internal static class Native
         void Add(ushort vk,uint flags=0)=>inputs.Add(new Input {Type=1,Data=new InputUnion {Keyboard=new KeyboardInput {Vk=vk,Flags=flags|(vk is >=0x21 and <=0x28?1u:0u)}}});
         if(shift)Add(0x10);Add(key);Add(key,2);if(shift)Add(0x10,2);return SendInput((uint)inputs.Count,inputs.ToArray(),Marshal.SizeOf<Input>())==inputs.Count;
     }
-    internal static bool TestClick(IntPtr window,int x,int y,bool restoreCursor=true)
+    internal static bool TestClick(IntPtr window,int x,int y,bool restoreCursor=true,uint buttonDown=2,uint buttonUp=4)
     {
         var point=new Point {X=x,Y=y};if(GetAncestor(WindowFromPoint(point),2)!=GetAncestor(window,2))return false;
         GetCursorPos(out var previous);SetCursorPos(x,y);
-        var inputs=new[]{new Input {Type=0,Data=new InputUnion {Mouse=new MouseInput {Flags=2}}},new Input {Type=0,Data=new InputUnion {Mouse=new MouseInput {Flags=4}}}};
+        var inputs=new[]{new Input {Type=0,Data=new InputUnion {Mouse=new MouseInput {Flags=buttonDown}}},new Input {Type=0,Data=new InputUnion {Mouse=new MouseInput {Flags=buttonUp}}}};
         var ok=SendInput(2,inputs,Marshal.SizeOf<Input>())==2;if(restoreCursor)SetCursorPos(previous.X,previous.Y);return ok;
     }
+    internal static string TestDragFailure {get;private set;}="";
     internal static async Task<bool> TestDragAsync(IntPtr window,int x,int y,int dx,int dy)
     {
-        if(GetAncestor(WindowFromPoint(new Point {X=x,Y=y}),2)!=GetAncestor(window,2))return false;
+        TestDragFailure="";
+        // The user's running floating app may share the test's position. Raise
+        // only this test window, without activation, before sending any input.
+        SetWindowPos(window,new IntPtr(-1),0,0,0,0,0x0013);
+        var hit=GetAncestor(WindowFromPoint(new Point {X=x,Y=y}),2);
+        if(hit!=GetAncestor(window,2)){TestDragFailure=$"hitPid={Pid(hit)}, expectedPid={Pid(window)}";return false;}
         GetCursorPos(out var previous);var held=false;
         bool Button(uint flags)=>SendInput(1,[new Input {Type=0,Data=new InputUnion {Mouse=new MouseInput {Flags=flags}}}],Marshal.SizeOf<Input>())==1;
         try
@@ -143,6 +149,7 @@ internal static class Native
         }
         finally{if(held)Button(4);SetCursorPos(previous.X,previous.Y);}
     }
+    internal static bool TestMoveCursor(Point point)=>SetCursorPos(point.X,point.Y);
     internal static void TestRestoreCursor(Point point)=>SetCursorPos(point.X,point.Y);
     public static (uint modifiers,uint key) ParseHotkey(string text)
     {

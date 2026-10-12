@@ -1,0 +1,9 @@
+{
+  "core-tests.json": "1.3.0",
+  "desktop-tests.json": "1.3.0",
+  "desktop-metrics.json": "1.3.0",
+  "responsiveness.json": "1.3.0",
+  "polish-interaction.json": "1.3.0",
+  "agent-style-save.json": "1.3.0",
+  "tutorial-tests.json": "1.3.0"
+}
