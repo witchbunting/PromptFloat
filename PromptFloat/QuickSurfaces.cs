@@ -166,7 +166,7 @@ internal sealed class QuickSurfaces : IDisposable
     {
         Close();mode=kind;
         var scroll=new ScrollViewer {Content=content,VerticalScrollBarVisibility=ScrollBarVisibility.Auto,MaxHeight=WorkHeight()-20,HorizontalScrollBarVisibility=ScrollBarVisibility.Disabled};
-        root=Ui.Card(scroll,new Thickness(12));root.Width=kind is "actions" or "insert"?double.NaN:370;root.SetValue(System.Windows.Documents.TextElement.FontFamilyProperty,new FontFamily("Microsoft YaHei UI"));root.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty,"Ink");
+        root=Ui.Card(scroll,new Thickness(12));root.Width=kind=="actions"?330:kind=="insert"?double.NaN:370;root.SetValue(System.Windows.Documents.TextElement.FontFamilyProperty,new FontFamily("Microsoft YaHei UI"));root.SetResourceReference(System.Windows.Documents.TextElement.ForegroundProperty,"Ink");
         popup=new Popup {Child=root,PlacementTarget=host.Ball,Placement=PlacementMode.Right,HorizontalOffset=6,AllowsTransparency=true,StaysOpen=kind is "actions" or "insert" or "progress" or "results",Focusable=interactive};
         PresentationSource.AddSourceChangedHandler(root,(_,e)=>{
             if(e.NewSource is HwndSource source)source.AddHook((IntPtr h,int msg,IntPtr w,IntPtr l,ref bool handled)=>{if(msg==Native.WM_MOUSEACTIVATE&&!interactive){handled=true;return new IntPtr(Native.MA_NOACTIVATE);}return IntPtr.Zero;});
@@ -184,6 +184,7 @@ internal sealed class QuickSurfaces : IDisposable
         var row=Ui.Row(
             Ui.Button("插入",()=>ShowMenu(snapshot)),
             Ui.Button("润色",()=>_ = PolishAsync(snapshot)),
+            Ui.Button("翻译",()=>host.OpenTranslation(snapshot)),
             Ui.Button("保存提示词",()=>host.SaveSnapshot(snapshot)),
             Ui.Button("×",()=>Close()));
         Show(row,"actions");

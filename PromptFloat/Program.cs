@@ -18,6 +18,11 @@ internal static class Program
         if(!first){signal.Set();return 0;}
         var app=new Application {ShutdownMode=ShutdownMode.OnExplicitShutdown};Ui.Styles();Ui.Theme("浅色");Host? host=null;RegisteredWaitHandle? waiter=null;
         app.DispatcherUnhandledException+=(_,e)=>{
+            if(verify)
+            {
+                Directory.CreateDirectory("artifacts");File.WriteAllText("artifacts/dispatcher-error.txt",e.Exception.ToString());
+                e.Handled=true;app.Shutdown(1);return;
+            }
             try{Directory.CreateDirectory(root);File.AppendAllText(Path.Combine(root,"errors.log"),DateTimeOffset.Now.ToString("O")+" "+e.Exception.GetType().Name+"\n");}catch{}
             MessageBox.Show(e.Exception.Message,"PromptFloat",MessageBoxButton.OK,MessageBoxImage.Warning);e.Handled=true;
         };
@@ -25,7 +30,7 @@ internal static class Program
             try
             {
                 host=new Host(new Store(root),!verify);
-                if(verify){await Verification.Run(host,args);app.Shutdown(0);return;}
+                if(verify){Directory.CreateDirectory("artifacts");File.WriteAllText("artifacts/verification-lifecycle.txt","verification started\n");await Verification.Run(host,args);File.AppendAllText("artifacts/verification-lifecycle.txt","verification returned\n");app.Shutdown(0);return;}
                 waiter=ThreadPool.RegisterWaitForSingleObject(signal,(_,_)=>app.Dispatcher.BeginInvoke(()=>{host.Ball.Show();host.Ball.Reveal();}),null,-1,false);host.Start();
                 if(args.Contains("--measure"))
                 {
@@ -43,6 +48,7 @@ internal static class Program
                 app.Shutdown(1);
             }
         };
-        app.Exit+=(_,_)=>{waiter?.Unregister(null);host?.Dispose();};return app.Run();
+        app.Exit+=(_,_)=>{if(verify)File.AppendAllText("artifacts/verification-lifecycle.txt","exit handler\n");waiter?.Unregister(null);host?.Dispose();if(verify)File.AppendAllText("artifacts/verification-lifecycle.txt","host disposed\n");};
+        var code=app.Run();if(verify)File.AppendAllText("artifacts/verification-lifecycle.txt","application returned "+code+"\n");return code;
     }
 }

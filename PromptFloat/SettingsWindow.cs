@@ -8,10 +8,10 @@ internal sealed class SettingsWindow : Window
     {
         Title="PromptFloat · "+(onboarding?"第三步 · 基础设置":"设置");Width=750;Height=690;MinWidth=620;MinHeight=550;WindowStartupLocation=WindowStartupLocation.CenterScreen;if(owner?.IsVisible==true)Owner=owner;
         var settings=JsonSerializer.Deserialize<Settings>(JsonSerializer.Serialize(host.Store.Settings,Store.Json),Store.Json)!;
-        var dock=new DockPanel {Margin=new Thickness(20)};var heading=Ui.Stack(Ui.Text(onboarding?"第三步 · 准备开始":"设置",24,true),Ui.Text("模板保存在本机；润色时将选中文字发送至你配置的 API。",12,false,"Muted"));DockPanel.SetDock(heading,Dock.Top);dock.Children.Add(heading);
+        var dock=new DockPanel {Margin=new Thickness(20)};var heading=Ui.Stack(Ui.Text(onboarding?"第三步 · 准备开始":"设置",24,true),Ui.Text("模板保存在本机；润色或翻译时将选中文字发送至你配置的 API。",12,false,"Muted"));DockPanel.SetDock(heading,Dock.Top);dock.Children.Add(heading);
         CheckBox Check(string text,bool value)=>new() {Content=text,IsChecked=value};
         var keyChanges=new Dictionary<string,string>();
-        var selectionActions=Check("输入框中常驻插入，选中文字后显示润色 / 保存",settings.AutoSelectionActions);
+        var selectionActions=Check("输入框中常驻插入，选中文字后显示润色 / 翻译 / 保存",settings.AutoSelectionActions);
         var auto=Check("开机启动（当前用户）",settings.AutoStart);var backup=Check("每日首次修改前自动备份，保留最近 7 份",settings.AutoBackup);
         var snap=Check("靠近屏幕边缘时吸附",settings.Snap);var half=Check("停靠边缘，闲置 6 秒后半隐藏",settings.HalfHide);
         var size=new Slider {Minimum=28,Maximum=88,Value=settings.BallSize,TickFrequency=4,IsSnapToTickEnabled=true,Margin=new Thickness(4,12,4,12)};
@@ -28,6 +28,7 @@ internal sealed class SettingsWindow : Window
             host.SaveAgentConfiguration(agents,defaultId,keys);
             agentStatus.Text="智能体配置已保存并生效，下一次润色使用新配置。";
         }).ShowDialog()),agentStatus,Ui.Text("密钥按当前 Windows 用户加密；模板导出和备份不包含密钥。",12,false,"Muted")));
+        var translationSettings=new TranslationSettingsEditor(settings);Tab("翻译预览",translationSettings);
         Tab("模板库",Ui.Stack(Ui.Button("分类与模板管理",host.OpenManager),Ui.Button("补充内置分类",()=>new CatalogWindow(host,false,this).ShowDialog()),Ui.Text("10 类、30 个可编辑模板。补充时按来源 ID 去重，不覆盖已修改版本。",12,false,"Muted")));
         var current=lastTargetApp??host.Input.Target?.App;var demo=Ui.Field("在这里输入测试文字，选中一部分后点击“测试插入”。",true,110);var testText=Ui.Field("提示词示例 ✨");int selectionStart=0,selectionLength=0;
         demo.SelectionChanged+=(_,_)=>{selectionStart=demo.SelectionStart;selectionLength=demo.SelectionLength;};
@@ -42,7 +43,7 @@ internal sealed class SettingsWindow : Window
             var hotkeys=new[]{panel.Text.Trim(),save.Text.Trim(),hide.Text.Trim()}.Select(Native.ParseHotkey).ToArray();if(hotkeys.Distinct().Count()!=3)throw new ArgumentException("三个快捷键不能相同。");
             settings.AutoStart=auto.IsChecked==true;settings.AutoBackup=backup.IsChecked==true;settings.Snap=snap.IsChecked==true;settings.HalfHide=half.IsChecked==true;settings.BallSize=size.Value;settings.Opacity=opacity.Value;settings.Theme=(string)theme.SelectedItem;
             settings.PanelHotkey=panel.Text.Trim();settings.SaveHotkey=save.Text.Trim();settings.HideHotkey=hide.Text.Trim();settings.CopyOnlyApps=TemplateEngine.Tags(apps.Text).Select(x=>x.EndsWith(".exe",StringComparison.OrdinalIgnoreCase)?x[..^4]:x).ToList();if(onboarding)settings.Initialized=true;
-            settings.AutoSelectionActions=selectionActions.IsChecked==true;Store.ValidateSettings(settings);var previous=host.Store.Settings;host.Store.SaveSettings(settings);try{host.Credentials.Save(keyChanges);}catch{host.Store.SaveSettings(previous);throw;}Host.SetAutoStart(settings.AutoStart);host.ApplySettings();DialogResult=true;
+            settings.AutoSelectionActions=selectionActions.IsChecked==true;translationSettings.Apply();Store.ValidateSettings(settings);var previous=host.Store.Settings;host.Store.SaveSettings(settings);try{host.Credentials.Save(keyChanges);}catch{host.Store.SaveSettings(previous);throw;}Host.SetAutoStart(settings.AutoStart);host.ApplySettings();DialogResult=true;
         },true));DockPanel.SetDock(footer,Dock.Bottom);dock.Children.Add(footer);dock.Children.Add(tabs);Content=dock;
     }
 }

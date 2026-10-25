@@ -95,6 +95,14 @@ Throws(()=>FirstRunTeaching.TryReserve(failedTeaching),"teaching state write fai
 Assert(!failedTeaching.Settings.TutorialShown,"failed state write does not change in-memory teaching flag");
 Directory.Delete(failedTeaching.SettingsPath+".tmp");
 await ApiVerification.Run(Assert);
+await PromptFloat.Tests.TranslationVerification.Run(Assert);
+var translationSettings=new Settings {TranslationTargetLanguage="English",TranslationAgentId="previous-agent",LatexCompilerPath=@"C:\TeX Live\bin\xelatex.exe"};
+store.SaveSettings(translationSettings);var translationStore=new Store(root);
+Assert(translationStore.Settings.TranslationTargetLanguage=="English"&&translationStore.Settings.TranslationAgentId=="previous-agent"&&translationStore.Settings.LatexCompilerPath==translationSettings.LatexCompilerPath,"translation language agent and compiler path survive restart");
+var translationBackup=store.Backup();store.SaveSettings(new Settings());store.Restore(translationBackup);
+Assert(store.Settings.TranslationTargetLanguage=="English"&&store.Settings.LatexCompilerPath==translationSettings.LatexCompilerPath,"full backup restores translation settings");
+Throws(()=>Store.ValidateSettings(new Settings {TranslationTargetLanguage="\n"}),"invalid translation language is rejected");
+
 Directory.CreateDirectory("artifacts");File.WriteAllText("artifacts/core-tests.json",JsonSerializer.Serialize(new {passed=tests.Count,tests,performance=new {templates=5000,seedMs,loadMs,searchMs}},Store.Json));Console.WriteLine($"{tests.Count} checks passed; load {loadMs:F1}ms, search {searchMs:F1}ms");
 // Only remove this exact, uniquely named temporary test directory.
 Directory.Delete(root,true);

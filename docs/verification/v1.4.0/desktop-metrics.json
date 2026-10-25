@@ -1,0 +1,9 @@
+{
+  "menuMs": 53.949,
+  "quickSearchMs": 110.1391,
+  "panelMs": 59.3826,
+  "searchUiMs": 123.1231,
+  "renderTestWorkingSetMB": 361.29296875,
+  "os": "Microsoft Windows NT 10.0.26100.0",
+  "runtime": "10.0.12"
+}

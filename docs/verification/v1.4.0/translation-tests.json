@@ -1,0 +1,10 @@
+{
+  "mockApi": true,
+  "realPaidApi": false,
+  "realXeLatex": true,
+  "pdfiumCpuPreview": true,
+  "originalPreserved": true,
+  "cancelOnClose": true,
+  "duplicateRequestProtected": true,
+  "localRecompile": true
+}

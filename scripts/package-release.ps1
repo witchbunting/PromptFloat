@@ -10,7 +10,7 @@ foreach($folder in @('licenses','docs')){
     $source=Join-Path $workspacePath $folder
     if(Test-Path -LiteralPath $source){Copy-Item -LiteralPath $source -Destination $releaseDirectory -Recurse -Force}
 }
-$evidenceNames=@('core-tests.json','artifact-versions.json','responsiveness.json','polish-interaction.json','agent-style-save.json','tutorial-tests.json','desktop-tests.json','desktop-metrics.json','compatibility.json')
+$evidenceNames=@('core-tests.json','artifact-versions.json','responsiveness.json','polish-interaction.json','agent-style-save.json','tutorial-tests.json','translation-tests.json','desktop-tests.json','desktop-metrics.json','compatibility.json')
 $evidenceDirectory=Join-Path $releaseDirectory 'artifacts'
 New-Item -ItemType Directory -Path $evidenceDirectory -Force | Out-Null
 foreach($name in $evidenceNames){

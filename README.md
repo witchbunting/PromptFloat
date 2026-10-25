@@ -1,14 +1,16 @@
 # PromptFloat
 
-**把常用提示词放在手边。** PromptFloat 是一款 Windows 悬浮提示词助手：从分层菜单中选一个模板，就能填入当前光标所在的位置。选中文字后，还可以把它保存为模板，或通过 OpenAI 兼容 API 获得三个润色版本。
+**把常用提示词放在手边。** PromptFloat 是一款 Windows 悬浮提示词助手：从分层菜单中选一个模板，就能填入当前光标所在的位置。选中文字后，还可以把它保存为模板，或通过 OpenAI 兼容 API 获得三个润色版本、翻译并预览带公式的译文。
 
-A portable Windows prompt-template assistant with a floating menu, a local library, and optional three-variant text polishing.
+A portable Windows prompt-template assistant with a floating menu, a local library, optional three-variant text polishing, and translation with a compiled LaTeX PDF preview.
 
 [下载最新版本](https://github.com/witchbunting/PromptFloat/releases/latest) · [使用说明](使用说明.md) · [验证报告](验证报告.md) · [更新记录](CHANGELOG.md)
 
 ![首次使用教学](docs/images/tutorial.png)
 
 ## 下载与运行
+
+下方下载链接指向已发布的 1.2.0。本文新增的外观与翻译预览功能包含在后续本地构建和当前源码中。
 
 1. 从 [Release v1.2.0](https://github.com/witchbunting/PromptFloat/releases/tag/v1.2.0) 下载 `PromptFloat-1.2.0-win-x64.zip`。
 2. 解压到可写目录，运行 `PromptFloat.exe`。压缩包自带 .NET 运行环境，无需另行安装 .NET。
@@ -26,13 +28,21 @@ A portable Windows prompt-template assistant with a floating menu, a local libra
 
 ### 把选中文字保存为模板
 
-选中文字后，悬浮球旁会出现“插入”“润色”和“保存提示词”三个操作，按需要选择即可。如果软件没能读到选中文字，可以先手动复制，再通过剪贴板入口新建模板。
+选中文字后，悬浮球旁会出现“插入”“润色”“翻译”和“保存提示词”四个操作，按需要选择即可。如果软件没能读到选中文字，可以先手动复制，再通过剪贴板入口新建模板。
 
 ### 获取三个润色版本
 
 打开 **设置 → 智能体**，填写 API、模型和密钥，设置三个润色风格，然后点击“保存并立即生效”。
 
 选中文字并点击“润色”后，就能查看三个版本。拖动悬浮球时，润色气泡会一起移动。原文和选区仍然有效时，可以用喜欢的版本替换原文；如果原文或选区已经变化，结果会改为供你复制。
+
+### 翻译选中文字，并预览公式
+
+1.4.0 中，选中文字后点击“翻译”，即可用已有智能体的 API 翻译，默认译成简体中文。结果窗口中可切换语言、编辑译文，再把文字与公式编译成 PDF，支持翻页、缩放、复制译文和导出 PDF。翻译不会改写原输入框。
+
+在 **设置 → 翻译预览** 中选择默认语言、智能体和本机 XeLaTeX。主程序仍自带 .NET 运行环境；公式编译另需电脑上安装 XeLaTeX（例如 TeX Live 或 MiKTeX，含 ctex 等常用宏包）。未找到编译器时，仍可查看和复制译文。1.4.0 为本地构建，尚未发布新的 GitHub Release。
+
+![翻译与 LaTeX 预览](docs/images/translation.png)
 
 ### 整理模板库和调整设置
 
@@ -77,7 +87,7 @@ A portable Windows prompt-template assistant with a floating menu, a local libra
 
 ## 数据保存与 API 调用
 
-模板、使用统计和设置默认保存在本机。点击润色或测试连接时，软件才会调用你配置的 API；润色请求发送的内容是选中文字和智能体指令。
+模板、使用统计和设置默认保存在本机。点击润色、翻译或测试连接时，软件才会调用你配置的 API；润色与翻译请求发送选中文字和任务指令；翻译还发送目标语言。LaTeX 编译和 PDF 预览在本机完成。
 
 API 密钥通过 Windows 的 DPAPI 按当前用户加密，模板导出和备份中不包含密钥。换电脑使用时，需要重新填写密钥。
 

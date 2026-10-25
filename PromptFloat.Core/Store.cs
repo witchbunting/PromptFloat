@@ -234,6 +234,7 @@ public sealed class Store
     }
     public static void ValidateSettings(Settings s)
     {
+        if(string.IsNullOrWhiteSpace(s.TranslationTargetLanguage)||s.TranslationTargetLanguage.Length>80||s.TranslationTargetLanguage.Any(char.IsControl)||s.LatexCompilerPath==null||s.LatexCompilerPath.Length>4096||s.TranslationAgentId?.Length>100)throw new InvalidDataException("翻译或 LaTeX 预览设置无效。");
         if(s.BallStyle is not ("blue" or "mint" or "orange" or "graphite" or "custom")||s.BallImageShape is not ("circle" or "original")||s.BallImage==null||s.BallImage.Length>400_000)throw new InvalidDataException("悬浮球样式无效。");
         if(s.BallStyle=="custom"&&s.BallImage.Length==0)throw new InvalidDataException("请先选择自定义图片。");
         if(s.BallImage.Length>0)

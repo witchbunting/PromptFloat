@@ -58,6 +58,9 @@ public sealed class Settings
     public bool AutoSelectionActions { get; set; } = true;
     public List<AgentProfile> Agents { get; set; } = [];
     public string? DefaultAgentId { get; set; }
+    public string? TranslationAgentId { get; set; }
+    public string TranslationTargetLanguage { get; set; } = "简体中文";
+    public string LatexCompilerPath { get; set; } = "";
     public bool Initialized { get; set; }
     public bool TutorialShown { get; set; }
     public double BallX { get; set; } = -1;

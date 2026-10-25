@@ -9,6 +9,17 @@ internal sealed class Host : IDisposable
     public bool Exiting {get;private set;}
     public bool IsPanelVisible=>Surfaces.IsOpen||panel?.IsVisible==true;
     public QuickSurfaces Surfaces {get;} public SelectionMonitor Selection {get;} public CredentialVault Credentials {get;} private PolishService? polish;public PolishService Polish=>polish??=new();
+    private TranslationService? translation;internal TranslationService Translation=>translation??=new();
+    private TranslationWindow? translationWindow;
+    internal TranslationWindow? ActiveTranslation=>translationWindow;
+    public void OpenTranslation(SelectionSnapshot snapshot)
+    {
+        if(string.IsNullOrWhiteSpace(snapshot.Text))return;
+        Surfaces.Close();translationWindow?.Close();
+        var opened=new TranslationWindow(this,snapshot.Text);translationWindow=opened;
+        opened.Closed+=(_,_)=>{if(ReferenceEquals(translationWindow,opened))translationWindow=null;};
+        opened.Show();
+    }
     private readonly HwndSource source;private NativeTray? tray;private ManagerWindow? manager;private TutorialWindow? tutorial;private bool toggling,usingTemplate;
     private string lastUseKey="";private long lastUseTick;
     private Task? menuCapture;private SelectionSnapshot? menuSnapshot;
@@ -129,7 +140,8 @@ internal sealed class Host : IDisposable
     }
     public void OpenManager(){panel?.Hide();Surfaces.Close();Input.Clear();if(manager?.IsVisible==true){manager.Activate();return;}manager=new ManagerWindow(this);manager.Closed+=(_,_)=>manager=null;manager.Show();}
     public void SaveSnapshot(SelectionSnapshot snapshot){Surfaces.Close();Input.Clear();if(new EditorWindow(Store,initialBody:snapshot.Text).ShowDialog()==true)LibraryChanged();}
-    public void OpenSettings(){Surfaces.Close();var lastTargetApp=Input.Target?.App;panel?.Hide();Input.Clear();new SettingsWindow(this,lastTargetApp:lastTargetApp).ShowDialog();}
+    public void OpenSettings()=>OpenSettings(null);
+    public void OpenSettings(string? initialTab){Surfaces.Close();var lastTargetApp=Input.Target?.App;panel?.Hide();Input.Clear();new SettingsWindow(this,lastTargetApp:lastTargetApp,initialTab:initialTab).ShowDialog();}
     public void LibraryChanged(){if(manager?.IsVisible==true)manager.Refresh(); /* Panel keeps its snapshot until reopened or category changes. */}
     public void ToggleBall(){panel?.Hide();Surfaces.Close();if(Ball.IsVisible)Ball.Hide();else {Ball.Show();Ball.Reveal();Ball.Clamp(false);}}
     public void ApplySettings()
@@ -153,5 +165,5 @@ internal sealed class Host : IDisposable
     }
     public void Notice(string text){if(tray!=null)tray.Notice(text);else Debug.WriteLine(text);}
     public void Exit(){Exiting=true;Ui.Run(()=>Store.SaveSettings(Store.Settings));Application.Current.Shutdown();}
-    public void Dispose(){Exiting=true;for(var i=1;i<=3;i++)Native.UnregisterHotKey(source.Handle,i);Selection.Dispose();Surfaces.Dispose();polish?.Dispose();source.Dispose();Input.Dispose();Ball.DisposeEvents();tray?.Dispose();panel?.Close();Ball.Close();}
+    public void Dispose(){Exiting=true;for(var i=1;i<=3;i++)Native.UnregisterHotKey(source.Handle,i);translationWindow?.Close();translation?.Dispose();Selection.Dispose();Surfaces.Dispose();polish?.Dispose();source.Dispose();Input.Dispose();Ball.DisposeEvents();tray?.Dispose();panel?.Close();Ball.Close();}
 }

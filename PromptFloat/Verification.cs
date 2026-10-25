@@ -42,7 +42,7 @@ internal static class Verification
         {
             for(var i=0;i<100&&!File.Exists(Path.Combine(fixtureDir,"hwnd.txt"));i++)await Task.Delay(50);
             var handle=new IntPtr(long.Parse(File.ReadAllText(Path.Combine(fixtureDir,"hwnd.txt"))));
-            async Task Command(int sequence,string text,int selectionStart,int length,string kind="plain")
+            async Task Command(int sequence,string text,int selectionStart,int length,string kind="plain",bool capture=true)
             {
                 var commandTemp=Path.Combine(fixtureDir,"command.tmp");
                 File.WriteAllText(commandTemp,JsonSerializer.Serialize(new FixtureCommand {Sequence=sequence,Text=text,Start=selectionStart,Length=length,Field=kind}));
@@ -53,6 +53,7 @@ internal static class Verification
                 var attached=foregroundThread!=ownThread&&Native.AttachThreadInput(ownThread,foregroundThread,true);
                 try {Native.SetForegroundWindow(handle);}finally{if(attached)Native.AttachThreadInput(ownThread,foregroundThread,false);}
                 await Task.Delay(100);
+                if(!capture)return; // Source-edit checks do not need a new insertion target.
                 var control=await host.Input.AutomationAsync(()=>{
                     var controls=AutomationElement.FromHandle(handle).FindAll(TreeScope.Descendants,new PropertyCondition(AutomationElement.ControlTypeProperty,kind=="password"?ControlType.Edit:kind=="rich"?ControlType.Document:kind=="button"?ControlType.Button:ControlType.Edit));
                     var focused=controls.Cast<AutomationElement>().FirstOrDefault(e=>kind=="button"?e.Current.Name=="非输入控件":kind=="password"?e.Current.IsPassword:!e.Current.IsPassword);
@@ -100,6 +101,7 @@ internal static class Verification
                 }
                 finally{if(!second.HasExited){second.Kill();await second.WaitForExitAsync();}}
             }
+            await TranslationVerification.Run(host,handle,(n,t,a,b,k)=>Command(n,t,a,b,k,n!=302),p=>Text(p),Check,output,args.Contains("--require-latex"));
             await QuickVerification.Run(host,handle,(n,t,a,b,k)=>Command(n,t,a,b,k),p=>Text(p),Check,output);
             await Command(6,"目标",0,0);child.Kill();await child.WaitForExitAsync();result=await host.Input.InsertAsync("blocked");Check(result.Status==InputStatus.InvalidTarget,"closed target blocks automatic paste");
             await InputBridge.CopyAsync("剪贴板测试✨");Check(Clipboard.GetText()=="剪贴板测试✨","clipboard Unicode persisted");Check(Clipboard.GetDataObject()?.GetDataPresent("CanUploadToCloudClipboard")==true,"clipboard cloud exclusion marker");
@@ -121,7 +123,7 @@ internal static class Verification
         try{searchBox.Text="内容 42";searchUiMs=await completion.Task.WaitAsync(TimeSpan.FromSeconds(3));}
         finally{descriptor.RemoveValueChanged(promptList,changed);}
         Check(searchUiMs<150&&promptList.Items.Count>0&&promptList.Items.Cast<Prompt>().All(p=>p.Body.Contains("内容")&&p.Body.Contains("42")),"5000-template search including debounce and layout under 150ms on this host",searchUiMs.ToString("F1")+" ms");searchBox.Text="";host.Panel.Hide();
-        GC.Collect();GC.WaitForPendingFinalizers();using var own=Process.GetCurrentProcess();var metrics=new {menuMs,quickSearchMs,panelMs=elapsed,searchUiMs,renderTestWorkingSetMB=own.WorkingSet64/1048576d,os=Environment.OSVersion.ToString(),runtime=Environment.Version.ToString(),dataDirectory=host.Store.Root};File.WriteAllText(Path.Combine(output,"desktop-metrics.json"),JsonSerializer.Serialize(metrics,Store.Json));
+        await Task.Run(()=>{GC.Collect();GC.WaitForPendingFinalizers();}).WaitAsync(TimeSpan.FromSeconds(15));using var own=Process.GetCurrentProcess();var metrics=new {menuMs,quickSearchMs,panelMs=elapsed,searchUiMs,renderTestWorkingSetMB=own.WorkingSet64/1048576d,os=Environment.OSVersion.ToString(),runtime=Environment.Version.ToString(),dataDirectory=host.Store.Root};File.WriteAllText(Path.Combine(output,"desktop-metrics.json"),JsonSerializer.Serialize(metrics,Store.Json));
         Ui.Theme("深色");host.Panel.Reload();host.Panel.Show();Render(host.Panel,Path.Combine(output,"panel-dark.png"));host.Panel.Hide();Ui.Theme("浅色");
         if(args.Contains("--compat"))await ExternalVerification.Run(host,output);
     }
